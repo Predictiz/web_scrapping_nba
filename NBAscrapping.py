@@ -56,7 +56,7 @@ def main():
 # Methode pemettant de lire la page web et de créer le fichier csv associé
 def createCsvFile(soup):
 
-    f = open("games.csv", 'a')
+    f = open("games.csv", 'w')
     thead = soup.find('thead')
     categoriesObject = thead.find_all('th')
     categories = []
