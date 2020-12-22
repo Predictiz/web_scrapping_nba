@@ -3,3 +3,4 @@ virtual-env/
 venv/
 *.csv
 *.txt
+__pycache__/

@@ -2,30 +2,41 @@ import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 import os
+from AtlasDB import AtlasDB 
 
 
 
 
 def main():
    
+    db = AtlasDB()    
     teamNames = getTeamNames()
-    games =  getGames('2020')
-    #for game in games:
-    results = getGameStatsPerPlayer(games[0]['home'], games[0]['visitor'], games[0]['csk'])
-    sendToMongoDB()
+    for team in teamNames:
+        db.addTeam(team['name'], team['slug'])
 
+    games =  getGames('2020')
+    for game in games:
+        db.addGame(game['csk'], game['date'], game['hour'], game['visitor'],game['home'], game['visitorPts'], game['homePts'] )
+        stats = getGameStatsPerPlayer(game['home'], game['visitor'], game['csk'])
+        for stat in stats[0]:
+            db.addPlayerStat(game['csk'], stat['name'], game['home'], stat)
+        for stat in stats[1]:
+            db.addPlayerStat(game['csk'], stat['name'], game['visitor'], stat)
 
 def getTeamNames():
-    teamNames = {}
+    teams = []
     req = requests.get('https://www.basketball-reference.com/teams/')
     soup = BeautifulSoup(req.text, 'html.parser')
     table = soup.find(id="teams_active")
     rows = table.find_all("th", {"data-stat":"franch_name"})
     for row in rows:
+        team = {}
         if(row.a != None ): 
             nick = row.a['href'][7:-1]
-            teamNames[nick] = row.a.text
-    return teamNames
+            team['slug'] = nick
+            team['name'] = row.a.text
+            teams.append(team)
+    return teams
 
     
 def getGames(year):
@@ -129,16 +140,6 @@ def getGameStatsPerPlayer(home, visitor, csk):
                             player[stat['data-stat']] = stat.text
 
     return (playersHome, playersVisitor)
-
-
-def sendToMongoDB():
-    # Create connection to MongoDB
-    client = MongoClient( os.environ['PREDICTIZ_CREDENTIALS'])
-
-    db = client['predictiz']
-    collection = db['test']
-
-
 
 
 
