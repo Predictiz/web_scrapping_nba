@@ -8,12 +8,11 @@ from AtlasDB import AtlasDB
 
 
 def main():
-   
-    db = AtlasDB()    
+    db = AtlasDB() 
     teamNames = getTeamNames()
     for team in teamNames:
-        db.addTeam(team['name'], team['slug'])
-
+        db.addTeam(team['name'], team['nick'])
+    
     games =  getGames('2020')
     for game in games:
         db.addGame(game['csk'], game['date'], game['hour'], game['visitor'],game['home'], game['visitorPts'], game['homePts'] )
@@ -22,6 +21,7 @@ def main():
             db.addPlayerStat(game['csk'], stat['name'], game['home'], stat)
         for stat in stats[1]:
             db.addPlayerStat(game['csk'], stat['name'], game['visitor'], stat)
+        
 
 def getTeamNames():
     teams = []
@@ -33,7 +33,7 @@ def getTeamNames():
         team = {}
         if(row.a != None ): 
             nick = row.a['href'][7:-1]
-            team['slug'] = nick
+            team['nick'] = nick
             team['name'] = row.a.text
             teams.append(team)
     return teams
